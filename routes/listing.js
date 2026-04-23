@@ -15,6 +15,7 @@ router.route("/")
 
 //new route
 router.get("/new",isLoggedIn,listingController.renderNewForm)
+router.post("/import-live",isLoggedIn,wrapAsync(listingController.importLiveHotel));
 
 
 router.route("/:id")

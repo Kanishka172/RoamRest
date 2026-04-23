@@ -15,6 +15,14 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/v3.17.0-beta.1/mapbox-gl.js"></script>
 </head>
 <body>
+    <div id="page-loader" class="page-loader">
+        <div class="loader-panel">
+            <i class="fa-solid fa-compass loader-icon"></i>
+            <h3 class="loader-title">HubStay</h3>
+            <p class="loader-text">Finding your next great stay...</p>
+            <div class="loader-track"><span></span></div>
+        </div>
+    </div>
     <%- include("../includes/navbar.ejs") %>
     <div class="container">
         <%- include("../includes/flash.ejs") %>

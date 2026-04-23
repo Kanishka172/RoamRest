@@ -1,122 +1,262 @@
 <% layout("/layouts/boilerplate") %>
 
-    
+<style>
+    #filters{
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .filter{
+        text-align: center;
+        margin-right: 2rem;
+        margin-top: 2rem;
+        opacity: 0.7;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+    .filter:hover{
+        opacity: 1;
+        cursor: pointer;
+        transform: translateY(-2px);
+    }
+    .filter p{
+        font-size: 0.8rem;
+    }
+    .tax-info{
+        display: none;
+    }
+    .tax-toggle{
+        border:1px solid black;
+        border-radius: 1rem;
+        height: 3.25rem;
+        padding: 1rem;
+        margin-left: 2rem;
+        display: flex;
+        align-items: center;
+    }
+    .filter-link{
+        text-decoration: none;
+        color: inherit;
+    }
+    .filter-trending{
+        position: relative;
+        border: 1px solid #ffaf82;
+        background: linear-gradient(135deg, #ffb183, #ff6d7d 58%, #7f67ff);
+        border-radius: 1rem;
+        padding: 0.55rem 0.9rem;
+        opacity: 1;
+        box-shadow: 0 12px 24px rgba(255, 92, 124, 0.35);
+        color: #fff;
+        font-weight: 700;
+        overflow: hidden;
+        isolation: isolate;
+    }
+    .filter-trending::before{
+        content: "";
+        position: absolute;
+        inset: -120% auto auto -50%;
+        width: 90%;
+        height: 320%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+        transform: rotate(22deg);
+        animation: trendSweep 2.8s linear infinite;
+        z-index: -1;
+    }
+    .filter-trending.active{
+        background: linear-gradient(135deg, #ff9a67, #ff5678 52%, #6b57ff);
+        border-color: #ffd2bd;
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 16px 28px rgba(255, 83, 112, 0.45);
+    }
+    .trend-live-dot{
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ffe56f;
+        margin-left: 0.35rem;
+        box-shadow: 0 0 0 0 rgba(255, 229, 111, 0.7);
+        animation: trendPulse 1.5s ease-out infinite;
+    }
+    .pagination-wrap{
+        margin-top: 1rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        justify-content: center;
+    }
+    @keyframes trendSweep{
+        0%{ transform: translateX(-140%) rotate(22deg); }
+        100%{ transform: translateX(260%) rotate(22deg); }
+    }
+    @keyframes trendPulse{
+        0%{ box-shadow: 0 0 0 0 rgba(255, 229, 111, 0.75); }
+        70%{ box-shadow: 0 0 0 9px rgba(255, 229, 111, 0); }
+        100%{ box-shadow: 0 0 0 0 rgba(255, 229, 111, 0); }
+    }
+</style>
 
-    <style>
-        #filters{
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .filter{
-            text-align: center;
-            margin-right: 2rem;
-            margin-top: 2rem;
-            opacity: 0.7;
-        }
-        .filter:hover{
-            opacity: 1;
-            cursor: pointer;
-        }
-        .filter p{
-            font-size: 0.8rem;
-        }
-        .tax-info{
-            display: none;
-        }
-        .tax-toggle{
-            border:1px solid black;
-            border-radius: 1rem;
-            height: 3.25rem;
-            padding: 1rem;
-            margin-left: 2rem;
-            display: flex;
-            align-items: center;
-        }
-    </style>
+<%
+  const buildListingQuery = (pageValue) => {
+    const params = new URLSearchParams();
+    if (searchLocation) params.set("location", searchLocation);
+    if (trendingEnabled) params.set("trending", "1");
+    if (trendingEnabled && liveOriginLocation) params.set("trendingCity", liveOriginLocation);
+    params.set("page", String(pageValue));
+    return `/listings?${params.toString()}`;
+  };
+%>
 
-    <div id="filters">
-        <div class="filter">
+<div class="hero-banner">
+    <h1 class="hero-title">Find your next unforgettable stay</h1>
+    <p class="hero-subtitle">Live hotel discoveries from real places, plus curated listings from the HubStay community.</p>
+</div>
+
+<div id="filters">
+    <a class="filter-link" href="/listings?trending=1">
+        <div class="filter filter-trending <%= trendingEnabled && !searchLocation ? 'active' : '' %>">
             <div><i class="fa-solid fa-fire"></i></div>
-            <p>Trending</p>
-        </div>
-        <div class="filter">
-            <div><i class="fa-solid fa-bed"></i></div>
-            <p>Rooms</p>
-        </div>
-        <div class="filter">
-            <div><i class="fa-solid fa-mountain-city"></i></div>
-            <p>Iconic Cities</p>
-        </div>
-        <div class="filter">
-            <div><i class="fa-solid fa-mountain"></i></div>
-            <p>Mountains</p>
-        </div>
-        
-        <div class="filter">
-            <div><i class="fa-solid fa-person-swimming"></i></div>
-            <p>Amazing Pools</p>
-        </div>
-        <div class="filter">
-            <div><i class="fa-solid fa-campground"></i></div>
-            <p>Farms</p>
-        </div>
-        <div class="filter">
-            <div><i class="fa-brands fa-fort-awesome"></i></div>
-            <p>Castles</p>
-        </div>
-        <div class="filter">
-            <div><i class="fa-regular fa-snowflake"></i></div>
-            <p>Arctic</p>
-        </div>
-        <div class="filter">
-            <div><i class="fa-solid fa-sun"></i></div>
-            <p>Desert</p>
-        </div>
-        <div class="filter">
-            <div><i class="fa-solid fa-umbrella-beach"></i></div>
-            <p>Beachfront</p>
-        </div>
-        <div class="filter">
-            <div><i class="fa-solid fa-ship"></i></div>
-            <p>Boats</p>
-        </div>
-        <div class="tax-toggle">
-            <div class="form-check-reverse form-switch">
-                <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault">
-                <label class="form-check-label" for="flexSwitchCheckDefault">Display total after taxes</label>
-            </div>
-        </div>
-    </div>
-
-    <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3">
-        <% for(let listing of allListings) { %>
-            <a href="/listings/<%=listing._id%>" class="listing-link">
-        <div class="card col listing-card">
-            <img src="<%= listing.image.url %>" class="card-img-top" alt="listing_image" style="height:20rem">
-            <div class="card-img-overlay"></div>
-            <div class="card-body">
-                <p class="card-text">
-                    <b><%= listing.title%></b> <br>
-                    &#8377;<%= listing.price.toLocaleString("en-IN") %> /night
-                    <i class="tax-info">&nbsp;&nbsp;+18% GST</i>
-                </p>
-            </div>
+            <p>Trending <span class="trend-live-dot"></span></p>
         </div>
     </a>
+    <div class="filter">
+        <div><i class="fa-solid fa-bed"></i></div>
+        <p>Rooms</p>
+    </div>
+    <div class="filter">
+        <div><i class="fa-solid fa-mountain-city"></i></div>
+        <p>Iconic Cities</p>
+    </div>
+    <div class="filter">
+        <div><i class="fa-solid fa-mountain"></i></div>
+        <p>Mountains</p>
+    </div>
+    <div class="filter">
+        <div><i class="fa-solid fa-person-swimming"></i></div>
+        <p>Amazing Pools</p>
+    </div>
+    <div class="filter">
+        <div><i class="fa-solid fa-campground"></i></div>
+        <p>Farms</p>
+    </div>
+    <div class="filter">
+        <div><i class="fa-brands fa-fort-awesome"></i></div>
+        <p>Castles</p>
+    </div>
+    <div class="filter">
+        <div><i class="fa-regular fa-snowflake"></i></div>
+        <p>Arctic</p>
+    </div>
+    <div class="filter">
+        <div><i class="fa-solid fa-sun"></i></div>
+        <p>Desert</p>
+    </div>
+    <div class="filter">
+        <div><i class="fa-solid fa-umbrella-beach"></i></div>
+        <p>Beachfront</p>
+    </div>
+    <div class="filter">
+        <div><i class="fa-solid fa-ship"></i></div>
+        <p>Boats</p>
+    </div>
+    <div class="tax-toggle">
+        <div class="form-check-reverse form-switch">
+            <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault">
+            <label class="form-check-label" for="flexSwitchCheckDefault">Display total after taxes</label>
+        </div>
+    </div>
+</div>
+
+<% if((searchLocation || trendingEnabled) && liveHotels && liveHotels.length > 0) { %>
+    <div class="mt-4 mb-2">
+        <h4 class="section-title"><%= liveSectionTitle %></h4>
+    </div>
+    <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1">
+        <% for(let hotel of liveHotels) { %>
+            <div class="card col listing-card reveal-card">
+                <img src="<%= hotel.imageUrl %>" class="card-img-top" alt="hotel_image" style="height:20rem">
+                <div class="card-body mt-2">
+                    <p class="card-text">
+                        <b><%= hotel.name %></b><br>
+                        <small><%= hotel.address %></small><br>
+                        <small><%= hotel.distanceMeters ? Math.round(hotel.distanceMeters) : "-" %> m away</small>
+                    </p>
+                    <% if(currUser) { %>
+                        <form method="POST" action="/listings/import-live" class="mb-2">
+                            <input type="hidden" name="hotel[name]" value="<%= hotel.name %>">
+                            <input type="hidden" name="hotel[address]" value="<%= hotel.address %>">
+                            <input type="hidden" name="hotel[lat]" value="<%= hotel.lat %>">
+                            <input type="hidden" name="hotel[lng]" value="<%= hotel.lng %>">
+                            <input type="hidden" name="hotel[imageUrl]" value="<%= hotel.imageUrl %>">
+                            <input type="hidden" name="hotel[searchLocation]" value="<%= liveOriginLocation %>">
+                            <button type="submit" class="btn btn-sm btn-dark">Add to My Listings</button>
+                        </form>
+                    <% } else { %>
+                        <small><a href="/login">Log in to add this hotel</a></small>
+                    <% } %>
+                </div>
+            </div>
         <% } %>
     </div>
-    
-    
+    <hr/>
+<% } %>
+
+<% if(searchLocation && (!liveHotels || liveHotels.length === 0)) { %>
+    <p class="mt-4">No live hotels found for this search yet. Try another city name.</p>
+<% } %>
+
+<% if(trendingEnabled && (!liveHotels || liveHotels.length === 0) && !searchLocation) { %>
+    <p class="mt-4">No trending hotels found right now. Please try again.</p>
+<% } %>
+
+<div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3">
+    <% for(let listing of allListings) { %>
+        <% const listingImageUrl = (listing.image && listing.image.filename === "mapbox-static")
+            ? "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=60"
+            : listing.image.url; %>
+        <a href="/listings/<%=listing._id%>" class="listing-link">
+            <div class="card col listing-card reveal-card">
+                <img src="<%= listingImageUrl %>" class="card-img-top" alt="listing_image" style="height:20rem">
+                <div class="card-img-overlay"></div>
+                <div class="card-body">
+                    <p class="card-text">
+                        <b><%= listing.title%></b> <br>
+                        &#8377;<%= listing.price.toLocaleString("en-IN") %> /night
+                        <i class="tax-info">&nbsp;&nbsp;+18% GST</i>
+                    </p>
+                </div>
+            </div>
+        </a>
+    <% } %>
+</div>
+
+<% if(totalPages > 1) { %>
+    <div class="pagination-wrap">
+        <nav aria-label="Listings pagination">
+            <ul class="pagination">
+                <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                    <a class="page-link" href="<%= buildListingQuery(Math.max(1, currentPage - 1)) %>">Previous</a>
+                </li>
+                <% for(let page = 1; page <= totalPages; page++) { %>
+                    <li class="page-item <%= currentPage === page ? 'active' : '' %>">
+                        <a class="page-link" href="<%= buildListingQuery(page) %>"><%= page %></a>
+                    </li>
+                <% } %>
+                <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                    <a class="page-link" href="<%= buildListingQuery(Math.min(totalPages, currentPage + 1)) %>">Next</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+<% } %>
+
 <script>
-    let taxSwitch=document.getElementById("flexSwitchCheckDefault");
-    taxSwitch.addEventListener("click",()=>{
-        let taxInfo=document.getElementsByClassName("tax-info");
-        for(info of taxInfo){
-            if(info.style.display !="inline"){
-            info.style.display="inline";
-            }else{
-                info.style.display="none";
+    let taxSwitch = document.getElementById("flexSwitchCheckDefault");
+    taxSwitch.addEventListener("click", () => {
+        let taxInfo = document.getElementsByClassName("tax-info");
+        for (let info of taxInfo) {
+            if (info.style.display !== "inline") {
+                info.style.display = "inline";
+            } else {
+                info.style.display = "none";
             }
         }
     });

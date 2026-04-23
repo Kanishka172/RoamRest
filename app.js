@@ -19,6 +19,7 @@ const User=require("./models/user.js");
 const listingRouter=require("./routes/listing.js");
 const reviewRouter=require("./routes/review.js");
 const userRouter=require("./routes/user.js");
+const placesRouter=require("./routes/places.js");
 
 //connecting database
 // const MONGO_URL="mongodb://127.0.0.1:27017/wanderlust";
@@ -58,7 +59,7 @@ const sessionOptions={
     store,
     secret:process.env.SECRET,
     resave:false,
-    saveUnintialized:true,
+    saveUninitialized:true,
     cookie:{
         expires:Date.now()+ 7*24*60*60*1000,
         maxAge:7*24*60*60*1000,
@@ -94,8 +95,13 @@ app.use((req,res,next)=>{
 //     res.send(registeredUser);
 // })
 
+app.get("/",(req,res)=>{
+    res.redirect("/listings");
+});
+
 app.use("/listings",listingRouter);
 app.use("/listings/:id/reviews",reviewRouter);
+app.use("/api/places",placesRouter);
 app.use("/",userRouter);
 
 app.use((req,res,next)=>{

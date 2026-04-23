@@ -18,3 +18,31 @@
         }, false)
       })
   })()
+
+window.addEventListener('load', function () {
+  const pageLoader = document.getElementById('page-loader');
+  if (pageLoader) {
+    pageLoader.classList.add('hidden');
+    setTimeout(function () {
+      pageLoader.remove();
+    }, 450);
+  }
+
+  const revealCards = document.querySelectorAll('.reveal-card');
+  revealCards.forEach(function (card, index) {
+    card.style.animationDelay = (index * 70) + 'ms';
+  });
+
+  const observer = new IntersectionObserver(function (entries, obs) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  revealCards.forEach(function (card) {
+    observer.observe(card);
+  });
+});
