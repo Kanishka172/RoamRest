@@ -51,7 +51,7 @@ const store = MongoStore.create({
     touchAfter: 24 * 3600,
 });
 
-store.on("error",()=>{
+store.on("error",(err)=>{
     console.log("ERROR in MONGO SESSION STORE",err);
 })
 
@@ -114,6 +114,12 @@ app.use((err,req,res,next)=>{
     // res.status(statusCode).send(message);
 });
 
-app.listen(8080,()=>{
-    console.log("Server is listening to port 8080");
-});
+const port = process.env.PORT || 8080;
+
+if (!process.env.VERCEL) {
+    app.listen(port,()=>{
+        console.log(`Server is listening to port ${port}`);
+    });
+}
+
+module.exports = app;
