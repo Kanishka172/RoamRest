@@ -1,4 +1,5 @@
 const Listing=require("../models/listing.js");
+const Review=require("../models/review.js");
 const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
 const mapToken=process.env.MAP_TOKEN;
 const geocodingClient = mbxGeocoding({ accessToken: mapToken });
@@ -128,8 +129,8 @@ module.exports.index=async (req,res)=>{
     const skip = (currentPage - 1) * PAGE_SIZE;
 
     const [allListings, totalListings] = await Promise.all([
-        Listing.find({}).skip(skip).limit(PAGE_SIZE),
-        Listing.countDocuments({}),
+        Listing.findPage(PAGE_SIZE,skip),
+        Listing.count(),
     ]);
 
     const totalPages = Math.max(1, Math.ceil(totalListings / PAGE_SIZE));
@@ -175,12 +176,12 @@ module.exports.renderNewForm=(req,res)=>{
 
 module.exports.showListing=async(req,res)=>{
     let {id}=req.params;
-    const listing=await Listing.findById(id).populate({path:"reviews",populate:{path:"author"}}).populate("owner");
+    const listing=await Listing.findByIdWithOwner(id);
     if(!listing){
         req.flash("error","Listing you requested for does not exist!")
-        res.redirect("/listings");
+        return res.redirect("/listings");
     }
-    console.log(listing)
+    listing.reviews=await Review.findByListingId(listing.id);
     res.render("listings/show",{listing});
 }
 
@@ -190,25 +191,23 @@ module.exports.createListing=async(req,res,next)=>{
         limit:1,
     })
     .send();
-    
-    
 
-    let url=req.file.path;
-    let filename=req.file.username
-    const newListing=new Listing(req.body.listing);
-    if(req.file){
-        newListing.image={
-            url: req.file.path,
-            filename: req.file.filename
-        };
-    }
-    newListing.owner=req.user._id;
-    newListing.image={url,filename}
+    const {title,description,price,location,country}=req.body.listing;
+    const feature=response.body.features[0];
 
-    newListing.geometry=response.body.features[0].geometry;
-
-    let savedListing=await newListing.save();
-    console.log(savedListing)
+    await Listing.create({
+        title,
+        description,
+        price,
+        location,
+        country,
+        image: {
+            url: req.file ? req.file.path : null,
+            filename: req.file ? req.file.filename : undefined,
+        },
+        geometry: feature ? feature.geometry : null,
+        ownerId: req.user.id,
+    });
     req.flash("success","New Listing Created!");
     res.redirect("/listings")
 }
@@ -230,7 +229,7 @@ module.exports.importLiveHotel=async(req,res)=>{
     const country = addressParts.length > 0 ? addressParts[addressParts.length - 1] : "Unknown";
     const location = searchLocation || (addressParts.length > 1 ? addressParts[addressParts.length - 2] : address);
 
-    const importedListing = new Listing({
+    const importedId = await Listing.create({
         title,
         description: `Imported from live venues: ${address}`,
         price: 2500,
@@ -244,12 +243,11 @@ module.exports.importLiveHotel=async(req,res)=>{
             url: hotel.imageUrl || pickCuratedHotelImage(`${title}-${location}`),
             filename: "live-hotel-image",
         },
-        owner: req.user._id,
+        ownerId: req.user.id,
     });
 
-    await importedListing.save();
     req.flash("success", "Live hotel imported to your listings.");
-    return res.redirect(`/listings/${importedListing._id}`);
+    return res.redirect(`/listings/${importedId}`);
 }
 
 module.exports.renderEditForm=async (req,res)=>{
@@ -257,31 +255,29 @@ module.exports.renderEditForm=async (req,res)=>{
     const listing=await Listing.findById(id);
     if(!listing){
         req.flash("error","Listing you requested for does not exist!")
-        res.redirect("/listings");
+        return res.redirect("/listings");
     }
     res.render("listings/edit",{listing});
 }
 
 module.exports.updateListing=async(req,res)=>{
-    
+
     let {id}=req.params;
-    let listing = await Listing.findByIdAndUpdate(id,{...req.body.listing});
-    
+    const {title,description,price,location,country}=req.body.listing;
+    const fields={title,description,price,location,country};
+
     if(typeof req.file !=="undefined"){
-        let url=req.file.path;
-        let filename=req.file.filename;
-        listing.image={url,filename};
-        await listing.save();
+        fields.image={url:req.file.path,filename:req.file.filename};
     }
-    
+    await Listing.update(id,fields);
+
     req.flash("success","Listing Updated!");
     res.redirect(`/listings/${id}`)
 }
 
 module.exports.destroyListing=async(req,res)=>{
     let {id}=req.params;
-    let deletedListing=await Listing.findByIdAndDelete(id);
-    console.log(deletedListing);
+    await Listing.destroy(id);
     req.flash("success","Listing deleted!");
     res.redirect("/listings");
 }

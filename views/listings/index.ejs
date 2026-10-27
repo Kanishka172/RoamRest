@@ -212,7 +212,7 @@
         <% const listingImageUrl = (listing.image && listing.image.filename === "mapbox-static")
             ? "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=60"
             : listing.image.url; %>
-        <a href="/listings/<%=listing._id%>" class="listing-link">
+        <a href="/listings/<%=listing.id%>" class="listing-link">
             <div class="card col listing-card reveal-card">
                 <img src="<%= listingImageUrl %>" class="card-img-top" alt="listing_image" style="height:20rem">
                 <div class="card-img-overlay"></div>
