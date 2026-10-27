@@ -2,7 +2,7 @@
   "engines":{
     "node":"24.x"
   },
-  "name": "major-project",
+  "name": "roamrest",
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
