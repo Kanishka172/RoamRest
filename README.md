@@ -57,8 +57,3 @@ Express.js
 MongoDB (Mongoose)
 JWT Authentication
 CORS
-
-
-## Credits
-
-RoamRest is based on [The-Hub-Stay](https://github.com/AlgoAditya21/The-Hub-Stay) by Adityaraj Pal ([@AlgoAditya21](https://github.com/AlgoAditya21)), originally released under the ISC license. The original commit history is kept as-is. Renaming, changes, and maintenance by [@Kanishka172](https://github.com/Kanishka172).
